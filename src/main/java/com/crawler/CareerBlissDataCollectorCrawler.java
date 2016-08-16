@@ -19,80 +19,22 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-public class CareerBlissDataCollectorCrawler extends WebCrawler {
+public class CareerBlissDataCollectorCrawler extends MyCrawler {
     private static final Logger logger = LoggerFactory.getLogger(CareerBlissDataCollectorCrawler.class);
 
-    private static final Pattern FILTERS = Pattern.compile(
-        ".*(\\.(css|js|bmp|gif|jpe?g|png|tiff?|mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf" +
-            "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
-    public static final String PAGING_PREFIX = "https://www.careerbliss.com/google/reviews/";
-
-    CrawlData myCrawlStat;
-
     public CareerBlissDataCollectorCrawler() {
-        myCrawlStat = new CrawlData();
+        super("https://www.careerbliss.com/google/reviews/");
     }
 
     @Override
-    public boolean shouldVisit(Page referringPage, WebURL url) {
-        String href = url.getURL().toLowerCase();
-        return !FILTERS.matcher(href).matches() && href.startsWith(PAGING_PREFIX);
-    }
+    public void readData(Document doc) {
+        Elements reviewElements = doc.getElementsByClass("company-reviews");
+        for (int i=0; i < reviewElements.size(); i++) {
+            Element reviewElement = reviewElements.get(i);
+            ReviewData reviewData = new ReviewData();
+            reviewData.getDatas().add(reviewElement.getElementsByClass("comments").text());
 
-    @Override
-    public void visit(Page page) {
-        logger.info("Visited: {}", page.getWebURL().getURL());
-        myCrawlStat.incProcessedPages();
-
-        if (page.getParseData() instanceof HtmlParseData) {
-            HtmlParseData parseData = (HtmlParseData) page.getParseData();
-
-            Document doc = Jsoup.parse(parseData.getHtml());
-
-            Elements reviewElements = doc.getElementsByClass("company-reviews");
-            for (int i=0; i < reviewElements.size(); i++) {
-                Element reviewElement = reviewElements.get(i);
-                ReviewData reviewData = new ReviewData();
-                reviewData.getDatas().add(reviewElement.getElementsByClass("comments").text());
-
-                myCrawlStat.addReviewData(reviewData);
-            }
-            Set<WebURL> links = parseData.getOutgoingUrls();
-//            myCrawlStat.incTotalLinks(links.size());
-//            for (WebURL webURL : links) {
-//                if (webURL.getURL().startsWith(PAGING_PREFIX)) {
-//                    myCrawlStat.addToLinkPages(webURL.getURL());
-//                }
-//            }
-//                System.out.println("QuynhTest: " + links);
+            myCrawlStat.addReviewData(reviewData);
         }
-        // We dump this crawler statistics after processing every 50 pages
-        if ((myCrawlStat.getTotalProcessedPages() % 50) == 0) {
-            dumpMyData();
-        }
-    }
-
-    /**
-     * This function is called by controller to get the local data of this crawler when job is finished
-     */
-    @Override
-    public Object getMyLocalData() {
-        return myCrawlStat;
-    }
-
-    /**
-     * This function is called by controller before finishing the job.
-     * You can put whatever stuff you need here.
-     */
-    @Override
-    public void onBeforeExit() {
-        dumpMyData();
-    }
-
-    public void dumpMyData() {
-        int id = getMyId();
-        // You can configure the log to output to file
-        logger.info("Crawler {} > Processed Pages: {}", id, myCrawlStat.getTotalProcessedPages());
-        logger.info("Crawler {} > Total Links Found: {}", id, myCrawlStat.getTotalLinks());
     }
 }
