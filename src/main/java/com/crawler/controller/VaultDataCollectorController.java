@@ -12,6 +12,6 @@ public class VaultDataCollectorController extends BaseController<VaultDataCollec
     public static void main(String[] args) throws Exception {
         saveData(VaultDataCollectorCrawler.class,
             "http://www.vault.com/company-profiles/internet-social-media/google-inc/employee-reviews",
-            "/home/quynh/tmp/vault.xlsx");
+            "Vault");
     }
 }

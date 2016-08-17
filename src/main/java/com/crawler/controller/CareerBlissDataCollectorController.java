@@ -24,6 +24,6 @@ public class CareerBlissDataCollectorController extends BaseController<CareerBli
     public static void main(String[] args) throws Exception {
         saveData(CareerBlissDataCollectorCrawler.class,
             "https://www.careerbliss.com/google/reviews/",
-            "/home/quynh/tmp/careerbliss.xlsx");
+            "Careerbliss");
     }
 }

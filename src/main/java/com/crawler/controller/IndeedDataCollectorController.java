@@ -22,6 +22,6 @@ public class IndeedDataCollectorController extends BaseController<IndeedDataColl
     public static void main(String[] args) throws Exception {
         saveData(IndeedDataCollectorCrawler.class,
             "http://www.indeed.com/cmp/Google/reviews?fcountry=ALL",
-            "/home/quynh/tmp/indeed.xlsx");
+            "Indeed");
     }
 }

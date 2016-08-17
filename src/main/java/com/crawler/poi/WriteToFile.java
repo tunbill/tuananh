@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.crawler.model.ReviewData;
+import org.apache.poi.hslf.model.Sheet;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFDataFormat;
@@ -23,40 +24,22 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 
 public class WriteToFile {
-    public static void writeToExcel(String filePath, List<ReviewData> datas) {
-        try {
-            FileOutputStream fileOut = new FileOutputStream(filePath);
-            HSSFWorkbook workbook = new HSSFWorkbook();
-            HSSFSheet worksheet = workbook.createSheet("POI Worksheet");
+    public static void writeToExcel(String sheetName, List<ReviewData> datas) throws Exception{
+        ExcelRead objExcelFile = new ExcelRead();
+        String folderPath = System.getProperty("user.dir") + "/data/";
 
-            // index from 0,0... cell A1 is cell(0,0)
-            for (int i = 0; i < datas.size(); i++) {
-                ReviewData data = datas.get(i);
-                HSSFRow row = worksheet.createRow(i);
-                for (int j = 0; j < data.getDatas().size(); j++) {
-                    HSSFCell cellA1 = row.createCell(j);
-                    cellA1.setCellValue(data.getDatas().get(j));
-                    HSSFCellStyle cellStyle = workbook.createCellStyle();
-                    cellStyle.setFillForegroundColor(HSSFColor.GOLD.index);
-                    cellStyle.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
-                    cellA1.setCellStyle(cellStyle);
-                }
-            }
+        System.out.println(folderPath);
 
-            workbook.write(fileOut);
-            fileOut.flush();
-            fileOut.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        objExcelFile.readExcel(folderPath, "CrawlerData.xlsx", sheetName);
+        AppendDataInExcel appendData = new AppendDataInExcel();
+        appendData.appendWrite(objExcelFile.getGuru99Workbook(), objExcelFile.getGuru99Sheet(), 7, datas);
     }
 
 }

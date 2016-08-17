@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BaseController<T extends WebCrawler> {
-    public static void saveData(Class type, String baseAddress, String filePosition) throws Exception{
+    public static void saveData(Class type, String baseAddress, String sheetName) throws Exception{
         CrawlConfig config = new CrawlConfig();
         config.setCrawlStorageFolder(CrawlerConstants.ROOT_FOLDER);
         config.setMaxPagesToFetch(CrawlerConstants.NUMBER_OF_CRAWLER);
@@ -48,7 +48,7 @@ public class BaseController<T extends WebCrawler> {
         System.out.println("\tTotal Links found: {}" + totalLinks);
         System.out.println("\tTotal Text Size: {}" + totalTextSize);
 
-        WriteToFile.writeToExcel(filePosition, allReviewDatas);
+        WriteToFile.writeToExcel(sheetName, allReviewDatas);
 
     }
 }
