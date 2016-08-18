@@ -19,14 +19,14 @@ public class VaultDataCollectorCrawler extends MyCrawler {
     private String reviewType = "Company";
 
     public VaultDataCollectorCrawler() {
-        super("http://www.vault.com/company-profiles/internet-social-media/google-inc/employee-reviews?rt=");
+        super("http://www.vault.com/company-profiles/", "/employee-reviews?rt=");
         //rateKeyValues.put("one-half", 0.5F);
     }
 
     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
         String href = url.getURL().toLowerCase();
-        if (!FILTERS.matcher(href).matches() && href.startsWith(prefixPage.toLowerCase()) && !href.contains("&")) {
+        if (!FILTERS.matcher(href).matches() && href.startsWith(prefixPage.toLowerCase())  && href.contains(urlContainString.toLowerCase()) && !href.contains("&")) {
             System.out.println("Should visit from vault: " + url.getURL());
             return true;
         }

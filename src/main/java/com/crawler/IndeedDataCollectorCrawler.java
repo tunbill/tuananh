@@ -16,13 +16,12 @@ public class IndeedDataCollectorCrawler extends MyCrawler {
     private static final List<String> rankingKeys = ImmutableList.of("Job Work/Life Balance", "Compensation/Benefits", "Job Security/Advancement", "Management", "Job Culture");
 
     public IndeedDataCollectorCrawler() {
-        super("http://www.indeed.com/cmp/Google/reviews?fcountry=ALL&start=");
+        super("http://www.indeed.com/", "/reviews?fcountry=ALL&start=");
     }
 
     @Override
     public void readData(Document doc) {
         Elements reviewElements = doc.getElementsByClass("cmp-review");
-        System.out.println("Number of tag: " + reviewElements.size());
         for (int i=0; i < reviewElements.size(); i++) {
             Element reviewElement = reviewElements.get(i);
 
@@ -31,8 +30,8 @@ public class IndeedDataCollectorCrawler extends MyCrawler {
             ReviewData reviewData = new ReviewData();
             List<String> datas = reviewData.getDatas();
             datas.add("");
-            datas.add("Google");    //Company Name
-            datas.add("" + (i+1));  //Revew Number
+//            datas.add("Google");    //Company Name
+//            datas.add("" + (i+1));  //Revew Number
 
             //Overall
             datas.add(reviewElement.getElementsByClass("cmp-rating-expandable").first().getElementsByClass("cmp-value-title").first().attr("title"));

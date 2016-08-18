@@ -21,7 +21,7 @@ public class CareerBlissDataCollectorCrawler extends MyCrawler {
         "Rewards You Receive", "Growth Opportunities", "Company Culture", "Way You Work");
 
     public CareerBlissDataCollectorCrawler() {
-        super("https://www.careerbliss.com/google/reviews/?page=");
+        super("https://www.careerbliss.com/", "/reviews/?page=");
     }
 
     @Override

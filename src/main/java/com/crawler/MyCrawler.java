@@ -18,18 +18,20 @@ public abstract class MyCrawler extends WebCrawler {
         ".*(\\.(css|js|bmp|gif|jpe?g|png|tiff?|mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf" +
             "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
     protected String prefixPage;
+    protected String urlContainString;
 
     CrawlData myCrawlStat;
 
-    public MyCrawler(String prefixPage) {
+    public MyCrawler(String prefixPage, String urlContainString) {
         this.prefixPage = prefixPage;
+        this.urlContainString = urlContainString;
         myCrawlStat = new CrawlData();
     }
 
     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
         String href = url.getURL().toLowerCase();
-        if (!FILTERS.matcher(href).matches() && href.startsWith(prefixPage.toLowerCase())) {
+        if (href.startsWith(prefixPage.toLowerCase()) && href.contains(urlContainString.toLowerCase())) {
             System.out.println("Should visit: " + url.getURL());
             return true;
         }

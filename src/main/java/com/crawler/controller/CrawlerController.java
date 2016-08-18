@@ -1,13 +1,17 @@
 package com.crawler.controller;
 
 import com.crawler.CareerBlissDataCollectorCrawler;
+import com.crawler.CareerBlissMainPageCrawler;
 import com.crawler.CrawlerConstants;
 import com.crawler.IndeedDataCollectorCrawler;
+import com.crawler.IndeedMainPageCrawler;
 import com.crawler.VaultDataCollectorCrawler;
+import com.crawler.VaultMainPageCrawler;
 import com.crawler.model.CrawlData;
 import com.crawler.model.Crawler;
 import com.crawler.model.ReviewData;
 import com.crawler.poi.ExcelRead;
+import com.google.common.collect.ImmutableList;
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
@@ -29,28 +33,58 @@ public class CrawlerController {
         String folderPath = System.getProperty("user.dir") + "/data/";
         Workbook currentWorkBook = objExcelFile.readExcel(folderPath, "Data.xlsx");
 
-        List<Crawler> allCrawlers = new ArrayList<Crawler>();
-        allCrawlers.add(new Crawler("http://www.vault.com/company-profiles/internet-social-media/google-inc/employee-reviews", VaultDataCollectorCrawler.class, "Vault"));
-        allCrawlers.add(new Crawler("https://www.careerbliss.com/google/reviews/", CareerBlissDataCollectorCrawler.class, "Careerbliss"));
-        allCrawlers.add(new Crawler("http://www.indeed.com/cmp/Google/reviews?fcountry=ALL", IndeedDataCollectorCrawler.class, "Indeed"));
-
         try {
             FileOutputStream outputStream = new FileOutputStream(new File(folderPath + "CrawlerData.xlsx"), true);
 
-            for (Crawler crawler : allCrawlers) {
-                List<ReviewData> allReviewDatas = getCrawlerData(crawler.getBaseAddress(), crawler.getType());
-                Sheet sheet = currentWorkBook.getSheet(crawler.getSheetName());
-                int rowc = 7;
+            List<Crawler> allCrawlers = new ArrayList<Crawler>();
 
-                for (int i = 0; i < allReviewDatas.size(); i++) {
-                    ReviewData data = allReviewDatas.get(i);
-                    Row row = sheet.createRow(++rowc);
-                    for (int j = 0; j < data.getDatas().size(); j++) {
-                        Cell cell = row.createCell(j);
-                        cell.setCellValue(data.getDatas().get(j));
-                    }
+            //allCrawlers.add(new Crawler("http://www.vault.com/search-results/CompanyResultsPage?iID=4118", VaultMainPageCrawler.class, "Vault"));
+            allCrawlers.add(new Crawler("https://www.careerbliss.com/index/?pageType=ReviewsByCompanyName&letter=a", CareerBlissMainPageCrawler.class, "Careerbliss"));
+            //allCrawlers.add(new Crawler("http://www.indeed.com/Best-Places-to-Work", IndeedMainPageCrawler.class, "Indeed"));
+
+            for (Crawler baseCrawler : allCrawlers) {
+                Sheet sheet = currentWorkBook.getSheet(baseCrawler.getSheetName());
+                List<ReviewData> allIndeedCompanies = BaseController.getCrawlerData(baseCrawler.getBaseAddress(), baseCrawler.getType());
+                int rowIndex = 7;
+                String prefixUrl = "", suffixUrl = "";
+                String typeName = baseCrawler.getType().getName();
+                Class nextCrawlerPage = null;
+                if (typeName.contains("IndeedMainPageCrawler")) {
+                    prefixUrl = "http://www.indeed.com";
+                    suffixUrl = "/reviews?fcountry=ALL";
+                    nextCrawlerPage = IndeedDataCollectorCrawler.class;
+                } else if (typeName.contains("CareerBlissMainPageCrawler")) {
+                    prefixUrl = "https://www.careerbliss.com";
+                    nextCrawlerPage = CareerBlissDataCollectorCrawler.class;
+                } else if (typeName.contains("VaultMainPageCrawler")) {
+                    prefixUrl = "http://www.vault.com";
+                    suffixUrl = "/employee-reviews";
+                    nextCrawlerPage = VaultDataCollectorCrawler.class;
                 }
 
+                for (ReviewData datas : allIndeedCompanies) {
+                    List<String> data = datas.getDatas();
+                    System.out.println(data.get(0) + " || " + prefixUrl + data.get(1) + suffixUrl + " || " + nextCrawlerPage);
+
+//                    if (null != nextCrawlerPage) {
+//                        List<ReviewData> allReviewDatas = BaseController.getCrawlerData(prefixUrl + data.get(1) + suffixUrl, nextCrawlerPage);
+//
+//                        for (int i = 0; i < allReviewDatas.size(); i++) {
+//                            ReviewData reviewDatas = allReviewDatas.get(i);
+//                            List<String> reviewData = reviewDatas.getDatas();
+//
+//                            reviewData.add(1, "" + (rowIndex - 6));
+//                            reviewData.add(1, data.get(0));//Company name
+//
+//                            Row row = sheet.createRow(++rowIndex);
+//                            for (int j = 0; j < reviewData.size(); j++) {
+//                                Cell cell = row.createCell(j);
+//                                cell.setCellValue(reviewData.get(j));
+//                            }
+//                        }
+//                    }
+
+                }
             }
             currentWorkBook.write(outputStream);
             System.out.println("Wrote in Excel");
@@ -61,33 +95,17 @@ public class CrawlerController {
         }
     }
 
-    private static List<ReviewData> getCrawlerData(String baseAddress, Class type) throws Exception{
-        CrawlConfig config = new CrawlConfig();
-        config.setCrawlStorageFolder(CrawlerConstants.ROOT_FOLDER);
-        config.setMaxPagesToFetch(CrawlerConstants.NUMBER_OF_CRAWLER);
-        config.setPolitenessDelay(1000);
-
-        PageFetcher pageFetcher = new PageFetcher(config);
-        RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
-        RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
-        CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
-
-        controller.addSeed(baseAddress);
-        controller.start(type, CrawlerConstants.NUMBER_OF_CRAWLER);
-
-        List<Object> crawlersLocalData = controller.getCrawlersLocalData();
-        int totalProcessedPages = 0;
-        List<ReviewData> allReviewDatas = new ArrayList<ReviewData>();
-        for (Object localData : crawlersLocalData) {
-            CrawlData stat = (CrawlData) localData;
-            totalProcessedPages += stat.getTotalProcessedPages();
-
-            allReviewDatas.addAll(stat.getReviewDatas());
-        }
-
-        System.out.println("Aggregated Statistics:");
-        System.out.println("\tProcessed Pages: {}" + totalProcessedPages);
-
-        return allReviewDatas;
+    private static List<ReviewData> testDatas() {
+//            allCrawlers.add(new Crawler("http://www.vault.com/company-profiles/internet-social-media/google-inc/employee-reviews", VaultDataCollectorCrawler.class, "Vault"));
+//            allCrawlers.add(new Crawler("https://www.careerbliss.com/google/reviews/", CareerBlissDataCollectorCrawler.class, "Careerbliss"));
+//            allCrawlers.add(new Crawler("http://www.indeed.com/cmp/Google/reviews?fcountry=ALL", IndeedDataCollectorCrawler.class, "Indeed"));
+        List<ReviewData> result = new ArrayList<ReviewData>();
+        ReviewData data = new ReviewData();
+        data.setDatas(ImmutableList.of("Southwest Airlines", "/cmp/Southwest-Airlines"));
+        result.add(data);
+        data = new ReviewData();
+        data.setDatas(ImmutableList.of("Colgate-Palmolive", "/cmp/Colgate--palmolive"));
+        result.add(data);
+        return result;
     }
 }
