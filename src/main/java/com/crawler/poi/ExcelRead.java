@@ -15,9 +15,9 @@ public class ExcelRead {
     private int  rowCount = 0;
 
     Sheet guru99Sheet;
-    Workbook guru99Workbook = null;
 
-    public void readExcel(String filePath, String fileName, String sheetName) throws IOException, InterruptedException {
+    public Workbook readExcel(String filePath, String fileName) throws IOException, InterruptedException {
+        Workbook guru99Workbook = null;
 
         // Create a object of File class to open xlsx file
         System.out.println(filePath + fileName);
@@ -39,36 +39,7 @@ public class ExcelRead {
             guru99Workbook = new HSSFWorkbook(inputStream);
         }
 
-        // Read sheet inside the workbook by its name
-
-        guru99Sheet = guru99Workbook.getSheet(sheetName);
-        System.out.println("getFirstRowNum: " + guru99Sheet.getFirstRowNum());
-
-        rowCount = (guru99Sheet.getLastRowNum()) - (guru99Sheet.getFirstRowNum());
-        System.out.println("rowcount: " + rowCount);
-
-        setRowCount(rowCount);
-    }
-    public  void setRowCount(int rc){
-        passRowCount =rc;
-    }
-    public  int getRowCount(){
-        return passRowCount;
-    }
-
-    public void setGuru99Workbook(Workbook guru99Workbook) {
-        this.guru99Workbook = guru99Workbook;
-    }
-
-    public void setGuru99Sheet(Sheet guru99Sheet) {
-        this.guru99Sheet = guru99Sheet;
-    }
-
-    public Sheet getGuru99Sheet() {
-        return guru99Sheet;
-    }
-
-    public Workbook getGuru99Workbook() {
         return guru99Workbook;
+
     }
 }

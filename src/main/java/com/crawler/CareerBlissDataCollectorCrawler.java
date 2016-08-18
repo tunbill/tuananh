@@ -1,28 +1,18 @@
 package com.crawler;
 
-import com.crawler.model.CrawlData;
 import com.crawler.model.ReviewData;
-import com.crawler.poi.WriteToFile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import edu.uci.ics.crawler4j.crawler.Page;
-import edu.uci.ics.crawler4j.crawler.WebCrawler;
-import edu.uci.ics.crawler4j.parser.HtmlParseData;
-import edu.uci.ics.crawler4j.url.WebURL;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
 
 public class CareerBlissDataCollectorCrawler extends MyCrawler {
     private static final Logger logger = LoggerFactory.getLogger(CareerBlissDataCollectorCrawler.class);
@@ -31,7 +21,7 @@ public class CareerBlissDataCollectorCrawler extends MyCrawler {
         "Rewards You Receive", "Growth Opportunities", "Company Culture", "Way You Work");
 
     public CareerBlissDataCollectorCrawler() {
-        super("https://vvvwww.careerbliss.com/google/reviews/?page=");
+        super("https://www.careerbliss.com/google/reviews/?page=");
     }
 
     @Override

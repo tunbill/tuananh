@@ -14,10 +14,10 @@ import org.jsoup.select.Elements;
 import java.util.regex.Pattern;
 
 public abstract class MyCrawler extends WebCrawler {
-    private static final Pattern FILTERS = Pattern.compile(
+    protected static final Pattern FILTERS = Pattern.compile(
         ".*(\\.(css|js|bmp|gif|jpe?g|png|tiff?|mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf" +
             "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
-    private String prefixPage;
+    protected String prefixPage;
 
     CrawlData myCrawlStat;
 

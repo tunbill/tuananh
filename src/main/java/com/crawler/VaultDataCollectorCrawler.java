@@ -2,6 +2,9 @@ package com.crawler;
 
 import com.crawler.model.ReviewData;
 import com.google.common.collect.ImmutableMap;
+import edu.uci.ics.crawler4j.crawler.Page;
+import edu.uci.ics.crawler4j.parser.HtmlParseData;
+import edu.uci.ics.crawler4j.url.WebURL;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -13,10 +16,47 @@ import java.util.Set;
 
 public class VaultDataCollectorCrawler extends MyCrawler {
     private static final Map<String, Float> rateKeyValues =  ImmutableMap.of("one", 1F, "two", 2F, "three", 3F, "four", 4F, "five", 5F);
+    private String reviewType = "Company";
 
     public VaultDataCollectorCrawler() {
         super("http://www.vault.com/company-profiles/internet-social-media/google-inc/employee-reviews?rt=");
         //rateKeyValues.put("one-half", 0.5F);
+    }
+
+    @Override
+    public boolean shouldVisit(Page referringPage, WebURL url) {
+        String href = url.getURL().toLowerCase();
+        if (!FILTERS.matcher(href).matches() && href.startsWith(prefixPage.toLowerCase()) && !href.contains("&")) {
+            System.out.println("Should visit from vault: " + url.getURL());
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void visit(Page page) {
+        String url = page.getWebURL().getURL();
+        logger.info("Visited: {}", url);
+
+        if (url.contains("salaries")) {
+            reviewType = "Salary";
+        } else if (url.contains("interviews")) {
+            reviewType = "Interview";
+        }
+        myCrawlStat.incProcessedPages();
+
+        if (page.getParseData() instanceof HtmlParseData) {
+            HtmlParseData parseData = (HtmlParseData) page.getParseData();
+
+            Document doc = Jsoup.parse(parseData.getHtml());
+
+            readData(doc);
+        }
+        // We dump this crawler statistics after processing every 50 pages
+        if ((myCrawlStat.getTotalProcessedPages() % 50) == 0) {
+            System.out.println("Buc minh lam y: " + myCrawlStat.getTotalProcessedPages());
+            dumpMyData();
+        }
     }
 
     @Override
@@ -34,7 +74,7 @@ public class VaultDataCollectorCrawler extends MyCrawler {
             datas.add("" + (i+1));  //Revew Number
 
             //Review type
-            datas.add("");
+            datas.add(reviewType);
             // Review title
             datas.add(titleElement.first().text());
             // Rating
