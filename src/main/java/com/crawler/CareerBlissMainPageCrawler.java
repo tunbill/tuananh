@@ -18,8 +18,13 @@ public class CareerBlissMainPageCrawler extends MyCrawler {
     private static final Logger logger = LoggerFactory.getLogger(CareerBlissMainPageCrawler.class);
 
     public CareerBlissMainPageCrawler() {
-        super("https://www.careerbliss.com/index/?pageType=ReviewsByCompanyName", "ReviewsByCompanyName");
+        super("https://www.careerbliss.com/index/?", ImmutableList.of("pageType=ReviewsByCompanyName"));
     }
+    @Override
+    public boolean shouldReadData(String url) {
+        return false;
+    }
+
 
     @Override
     public void readData(Document doc) {

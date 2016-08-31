@@ -1,6 +1,7 @@
 package com.crawler;
 
 import com.crawler.model.ReviewData;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
@@ -19,15 +20,32 @@ public class VaultDataCollectorCrawler extends MyCrawler {
     private String reviewType = "Company";
 
     public VaultDataCollectorCrawler() {
-        super("http://www.vault.com/company-profiles/", "/employee-reviews?rt=");
-        //rateKeyValues.put("one-half", 0.5F);
+        //super("http://www.vault.com/company-profiles/", ImmutableList.of("/employee-reviews?rt="));
+        super("http://www.vault.com/", ImmutableList.of("/internet-social-media/"));
     }
+    @Override
+    public boolean shouldReadData(String url) {
+        url = url.toLowerCase();
+        if (url.startsWith("http://www.vault.com/company-profiles/") && url.contains("/employee-reviews".toLowerCase())) {
+            return true;
+        }
+        return false;
+    }
+
 
     @Override
     public boolean shouldVisit(Page referringPage, WebURL url) {
         String href = url.getURL().toLowerCase();
-        if (!FILTERS.matcher(href).matches() && href.startsWith(prefixPage.toLowerCase())  && href.contains(urlContainString.toLowerCase()) && !href.contains("&")) {
-            System.out.println("Should visit from vault: " + url.getURL());
+        if (!FILTERS.matcher(href).matches() && href.startsWith(prefixPage.toLowerCase()) && hrefChecking(href)) {
+            //System.out.println("Should visit from vault: " + url.getURL());
+            return true;
+        }
+        return false;
+    }
+
+    protected boolean hrefChecking(String href) {
+        if (href.contains("search-results/CompanyResultsPage".toLowerCase()) ||
+            href.contains("/company-profiles/")) {
             return true;
         }
         return false;
@@ -61,41 +79,46 @@ public class VaultDataCollectorCrawler extends MyCrawler {
 
     @Override
     public void readData(Document doc) {
-        Elements reviewElements = doc.getElementsByClass("verticalPadding10");
-        for (int i=0; i < reviewElements.size(); i++) {
-            Element reviewElement = reviewElements.get(i);
+        String title = doc.title();
+        if (title.endsWith("|Employee Reviews|Vault.com") && !title.startsWith("Submit a Review")) {
+            String comName = title.substring(0, title.indexOf('|'));
+            System.out.println(comName + " || " + doc.location());
+            Elements reviewElements = doc.getElementsByClass("verticalPadding10");
+            for (int i=0; i < reviewElements.size(); i++) {
+                Element reviewElement = reviewElements.get(i);
 
-            Elements titleElement = reviewElement.getElementsByTag("h2");
-            ReviewData reviewData = new ReviewData();
+                Elements titleElement = reviewElement.getElementsByTag("h2");
+                ReviewData reviewData = new ReviewData();
 
-            List<String> datas = reviewData.getDatas();
-            datas.add("");
-            datas.add("Google");    //Company Name
-            datas.add("" + (i+1));  //Revew Number
+                List<String> datas = reviewData.getDatas();
+                datas.add("");
+                datas.add(comName);    //Company Name
+                //datas.add("" + (i+1));  //Revew Number
 
-            //Review type
-            datas.add(reviewType);
-            // Review title
-            datas.add(titleElement.first().text());
-            // Rating
-            Element goldStarsLine = reviewElement.getElementsByClass("goldStars").first();
-            datas.add(getRate(goldStarsLine));
+                //Review type
+                datas.add(reviewType);
+                // Review title
+                datas.add(titleElement.first().text());
+                // Rating
+                Element goldStarsLine = reviewElement.getElementsByClass("goldStars").first();
+                datas.add(getRate(goldStarsLine));
 
-            String nextP = reviewElement.getElementsByTag("p").get(1).text();
-            // Current vs. former
-            datas.add(nextP.substring(nextP.indexOf("|") + 1));
-            // Review date
-            datas.add(nextP.substring(0, nextP.indexOf("|")));
-            // Uppers
-            // Downers
-            // Comments
-            Elements sections = reviewElement.getElementsByClass("section");
+                String nextP = reviewElement.getElementsByTag("p").get(1).text();
+                // Current vs. former
+                datas.add(nextP.substring(nextP.indexOf("|") + 1));
+                // Review date
+                datas.add(nextP.substring(0, nextP.indexOf("|")));
+                // Uppers
+                // Downers
+                // Comments
+                Elements sections = reviewElement.getElementsByClass("section");
 
-            for (int j = 0; j < sections.size(); j++) {
-                datas.add(sections.get(j).text());
+                for (int j = 0; j < sections.size(); j++) {
+                    datas.add(sections.get(j).text());
+                }
+
+                myCrawlStat.addReviewData(reviewData);
             }
-
-            myCrawlStat.addReviewData(reviewData);
         }
 
     }

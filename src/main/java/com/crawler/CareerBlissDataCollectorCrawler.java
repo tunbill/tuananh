@@ -3,6 +3,8 @@ package com.crawler;
 import com.crawler.model.ReviewData;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import edu.uci.ics.crawler4j.crawler.Page;
+import edu.uci.ics.crawler4j.url.WebURL;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -21,38 +23,69 @@ public class CareerBlissDataCollectorCrawler extends MyCrawler {
         "Rewards You Receive", "Growth Opportunities", "Company Culture", "Way You Work");
 
     public CareerBlissDataCollectorCrawler() {
-        super("https://www.careerbliss.com/", "/reviews/?page=");
+        super("https://www.careerbliss.com/", ImmutableList.of("/reviews/?page="));
+    }
+
+    @Override
+    public boolean shouldReadData(String url) {
+        url = url.toLowerCase();
+        if (url.contains("/reviews/".toLowerCase()) || url.contains("/reviews/?page=")) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean shouldVisit(Page referringPage, WebURL url) {
+        String href = url.getURL().toLowerCase();
+        if (!FILTERS.matcher(href).matches() && href.startsWith(prefixPage.toLowerCase()) && hrefChecking(href)) {
+            //System.out.println("Should visit from CareerBliss: " + url.getURL());
+            return true;
+        }
+        return false;
+    }
+
+    protected boolean hrefChecking(String href) {
+        if (href.contains("pageType=ReviewsByCompanyName".toLowerCase()) || href.endsWith("/reviews/") || href.contains("/reviews/?page=")) {
+            return true;
+        }
+        return false;
     }
 
     @Override
     public void readData(Document doc) {
-        Elements reviewElements = doc.getElementsByClass("company-reviews");
-        for (int i=0; i < reviewElements.size(); i++) {
-            Element reviewElement = reviewElements.get(i);
-            ReviewData reviewData = new ReviewData();
-            List<String> datas = reviewData.getDatas();
-            datas.add("");
-            datas.add("Google");    //Company Name
-            datas.add("" + (i+1));  //Revew Number
-            datas.add(reviewElement.getElementsByClass("job-title").text());            //Review Position
-            datas.add(getRatingValue(reviewElement.getElementsByClass("rating-container")));        //Review rating
-            datas.add(reviewElement.getElementsByClass("header13").text());   //Review Location
-            datas.add("");  //Review Date --> don't know where to get
-            datas.add(reviewElement.getElementsByClass("comments").text());   //Review Comment
+        String pageTitle = doc.title();
+        if (pageTitle.endsWith("Reviews | CareerBliss") || pageTitle.contains("Reviews Page")) {
+            String comName = doc.getElementsByClass("company-info-header").first().getElementsByTag("strong").first().text();
+            System.out.println("Ha ha: " + comName);
+            Elements reviewElements = doc.getElementsByClass("company-reviews");
+            for (int i=0; i < reviewElements.size(); i++) {
+                Element reviewElement = reviewElements.get(i);
+                ReviewData reviewData = new ReviewData();
+                List<String> datas = reviewData.getDatas();
+                datas.add("");
+                datas.add(comName);    //Company Name
+                //datas.add("" + (i+1));  //Revew Number
+                datas.add(reviewElement.getElementsByClass("job-title").text());            //Review Position
+                datas.add(getRatingValue(reviewElement.getElementsByClass("rating-container")));        //Review rating
+                datas.add(reviewElement.getElementsByClass("header13").text());   //Review Location
+                datas.add("");  //Review Date --> don't know where to get
+                datas.add(reviewElement.getElementsByClass("comments").text());   //Review Comment
 
-            //Person you work for
-            //People you work with
-            //Work setting
-            //Support you get
-            //Rewards you receive
-            //Growth opportunities
-            //Company culture
-            //Way you work
-            Map<String, String> rankingValues = getRankingValue(reviewElement.getElementsByClass("row-fluid"));
-            for (String rankingKey : rankingKeys) {
-                datas.add(rankingValues.get(rankingKey));
+                //Person you work for
+                //People you work with
+                //Work setting
+                //Support you get
+                //Rewards you receive
+                //Growth opportunities
+                //Company culture
+                //Way you work
+                Map<String, String> rankingValues = getRankingValue(reviewElement.getElementsByClass("row-fluid"));
+                for (String rankingKey : rankingKeys) {
+                    datas.add(rankingValues.get(rankingKey));
+                }
+                myCrawlStat.addReviewData(reviewData);
             }
-            myCrawlStat.addReviewData(reviewData);
         }
     }
 

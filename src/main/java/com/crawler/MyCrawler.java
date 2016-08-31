@@ -11,6 +11,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 public abstract class MyCrawler extends WebCrawler {
@@ -18,32 +19,23 @@ public abstract class MyCrawler extends WebCrawler {
         ".*(\\.(css|js|bmp|gif|jpe?g|png|tiff?|mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf" +
             "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
     protected String prefixPage;
-    protected String urlContainString;
+    protected List<String> urlContainString;
 
     CrawlData myCrawlStat;
 
-    public MyCrawler(String prefixPage, String urlContainString) {
+    public MyCrawler(String prefixPage, List<String> urlContainString) {
         this.prefixPage = prefixPage;
         this.urlContainString = urlContainString;
         myCrawlStat = new CrawlData();
     }
 
     @Override
-    public boolean shouldVisit(Page referringPage, WebURL url) {
-        String href = url.getURL().toLowerCase();
-        if (href.startsWith(prefixPage.toLowerCase()) && href.contains(urlContainString.toLowerCase())) {
-            System.out.println("Should visit: " + url.getURL());
-            return true;
-        }
-        return false;
-    }
-
-    @Override
     public void visit(Page page) {
-        logger.info("Visited: {}", page.getWebURL().getURL());
+        String url = page.getWebURL().getURL();
+        logger.info("Visited: {}", url);
         myCrawlStat.incProcessedPages();
 
-        if (page.getParseData() instanceof HtmlParseData) {
+        if (shouldReadData(url) && (page.getParseData() instanceof HtmlParseData)) {
             HtmlParseData parseData = (HtmlParseData) page.getParseData();
 
             Document doc = Jsoup.parse(parseData.getHtml());
@@ -82,4 +74,6 @@ public abstract class MyCrawler extends WebCrawler {
     }
 
     public abstract void readData(Document doc);
+
+    public abstract boolean shouldReadData(String url);
 }

@@ -1,6 +1,7 @@
 package com.crawler;
 
 import com.crawler.model.ReviewData;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
@@ -19,8 +20,13 @@ public class VaultMainPageCrawler extends MyCrawler {
     private String reviewType = "Company";
 
     public VaultMainPageCrawler() {
-        super("http://www.vault.com/search-results/CompanyResultsPage?iID=4118", "&pg=");
+        super("http://www.vault.com/search-results/CompanyResultsPage?iID=4118", ImmutableList.of("&pg="));
     }
+    @Override
+    public boolean shouldReadData(String url) {
+        return false;
+    }
+
 
     @Override
     public void readData(Document doc) {

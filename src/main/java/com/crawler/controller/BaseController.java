@@ -17,7 +17,7 @@ public class BaseController {
         CrawlConfig config = new CrawlConfig();
         config.setCrawlStorageFolder(CrawlerConstants.ROOT_FOLDER);
         config.setMaxPagesToFetch(CrawlerConstants.NUMBER_OF_CRAWLER);
-        config.setPolitenessDelay(1000);
+        config.setPolitenessDelay(10);
 
         PageFetcher pageFetcher = new PageFetcher(config);
         RobotstxtConfig robotstxtConfig = new RobotstxtConfig();

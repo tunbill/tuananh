@@ -46,6 +46,12 @@
       <artifactId>guava</artifactId>
       <version>19.0</version>
     </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.6</version>
+    </dependency>
+
   </dependencies>
   <build>
     <pluginManagement>
@@ -70,6 +76,29 @@
           <target>1.8</target>
         </configuration>
       </plugin>
+      <!-- any other plugins -->
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+	  <archive>
+      <manifest>
+        <mainClass>com.crawler.controller.CrawlerController</mainClass>
+      </manifest>
+    </archive>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+        </configuration>
+      </plugin>
     </plugins>
+
   </build>
 </project>

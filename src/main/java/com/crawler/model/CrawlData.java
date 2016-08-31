@@ -45,5 +45,4 @@ public class CrawlData {
     public void setReviewDatas(List<ReviewData> reviewDatas) {
         this.reviewDatas = reviewDatas;
     }
-
 }

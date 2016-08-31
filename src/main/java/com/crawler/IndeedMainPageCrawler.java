@@ -15,8 +15,13 @@ public class IndeedMainPageCrawler extends MyCrawler {
     private static final List<String> rankingKeys = ImmutableList.of("Job Work/Life Balance", "Compensation/Benefits", "Job Security/Advancement", "Management", "Job Culture");
 
     public IndeedMainPageCrawler() {
-        super("http://www.indeed.com/Best-Places-to-Work", "?i=all-industries&l=all-places&start=");
+        super("http://www.indeed.com/Best-Places-to-Work", ImmutableList.of("?i=all-industries&l=all-places&start="));
     }
+    @Override
+    public boolean shouldReadData(String url) {
+        return false;
+    }
+
 
     @Override
     public void readData(Document doc) {
