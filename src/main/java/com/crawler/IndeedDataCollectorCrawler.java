@@ -19,7 +19,7 @@ import java.util.Set;
 public class IndeedDataCollectorCrawler extends MyCrawler {
     private static final List<String> rankingKeys = ImmutableList.of("Job Work/Life Balance", "Compensation/Benefits", "Job Security/Advancement", "Management", "Job Culture");
     public IndeedDataCollectorCrawler() {
-        super("http://www.indeed.com/", ImmutableList.of("/reviews?fcountry=ALL&start="));
+        super("http://www.indeed.com/", ImmutableList.of("/reviews?fcountry=ALL&start="), "Indeed");
     }
 
     @Override
@@ -67,6 +67,7 @@ public class IndeedDataCollectorCrawler extends MyCrawler {
             List<String> datas = reviewData.getDatas();
             datas.add("");
             datas.add(comName);    //Company Name
+            datas.add("");
 //            datas.add("" + (i+1));  //Revew Number
 
             //Overall

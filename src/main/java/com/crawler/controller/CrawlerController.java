@@ -1,10 +1,12 @@
 package com.crawler.controller;
 
+import com.crawler.CareerBliss2DataCollectorCrawler;
 import com.crawler.CareerBlissDataCollectorCrawler;
 import com.crawler.CareerBlissMainPageCrawler;
 import com.crawler.CrawlerConstants;
 import com.crawler.IndeedDataCollectorCrawler;
 import com.crawler.IndeedMainPageCrawler;
+import com.crawler.Vault2DataCollectorCrawler;
 import com.crawler.VaultDataCollectorCrawler;
 import com.crawler.VaultMainPageCrawler;
 import com.crawler.model.CrawlData;
@@ -39,46 +41,60 @@ public class CrawlerController {
             System.out.println("\t tempalteFilePath (it will contain the full path to template file)");
             return;
         }
+        if (args.length > 1) {
+            String sitesString = args[1];
+            String[] sites = sitesString.split(",");
+            if (sites != null && sites.length > 0) {
+
+            }
+        }
+        String filePath = args[0];
         ExcelRead objExcelFile = new ExcelRead();
-        Workbook currentWorkBook = objExcelFile.readExcel(args[0]);
+        Workbook currentWorkBook = objExcelFile.readExcel(filePath);
 
         try {
 
-            Map<String, Integer> sheets = ImmutableMap.of("Current S&P 500", 2, "Former S&P 500", 3);
-            Set<String> companies = readAllCompanies(currentWorkBook, sheets);
+//            Map<String, Integer> sheets = ImmutableMap.of("Current S&P 500", 2, "Former S&P 500", 3);
+//            Set<String> companies = readAllCompanies(currentWorkBook, sheets);
 
-//            FileOutputStream outputStream = new FileOutputStream(new File("CrawlerData.xlsx"), true);
-//
-//            List<Crawler> allCrawlers = new ArrayList<Crawler>();
-//
-//            allCrawlers.add(new Crawler("http://www.vault.com/search-results/CompanyResultsPage?iID=4118", VaultDataCollectorCrawler.class, "Vault"));
-//            allCrawlers.add(new Crawler("https://www.careerbliss.com/index/?pageType=ReviewsByCompanyName&letter=a", CareerBlissDataCollectorCrawler.class, "Careerbliss"));
-//
-//           // allCrawlers.add(new Crawler("http://www.indeed.com/Best-Places-to-Work", IndeedDataCollectorCrawler.class, "Indeed"));
-//
-//            for (Crawler baseCrawler : allCrawlers) {
-//                Sheet sheet = currentWorkBook.getSheet(baseCrawler.getSheetName());
-//                List<ReviewData> allReviewDatas = BaseController.getCrawlerData(baseCrawler.getBaseAddress(), baseCrawler.getType());
-//                int rowIndex = 7;
-//                System.out.println("BUC MINH NHA: " + allReviewDatas.size());
-//                for (int i = 0; i < allReviewDatas.size(); i++) {
-//                    ReviewData reviewDatas = allReviewDatas.get(i);
-//                    List<String> reviewData = reviewDatas.getDatas();
-//
-//                    reviewData.add(2, "" + (rowIndex - 6));
-//
-//                    Row row = sheet.createRow(++rowIndex);
-//                    for (int j = 0; j < reviewData.size(); j++) {
-//                        Cell cell = row.createCell(j);
-//                        cell.setCellValue(reviewData.get(j));
-//                    }
-//                }
-//
-//            }
-//            currentWorkBook.write(outputStream);
-//            System.out.println("Wrote in Excel");
-//            outputStream.flush();
-//            outputStream.close();
+
+            List<Crawler> allCrawlers = new ArrayList<Crawler>();
+
+            allCrawlers.add(new Crawler("http://www.vault.com/search-results/CompanyResultsPage?iID=4094,4095,4096,4097,4098,117634,4100,4101,4103,117630,4105,4106,117629,132250,4107,117633,4108,4109,4119,57949,4111,4112,4113,4114,4117,4118,4120,117631,4122,4123,4124,117635,4126,4127,4128,117632,4129,4130,4132,4133,117933,4134,4135,4137,4138,4140,4141,4142,4143",
+                VaultDataCollectorCrawler.class, "Vault", 5000, true));
+            allCrawlers.add(new Crawler("https://www.careerbliss.com/index/?pageType=ReviewsByCompanyName&letter=a",
+                CareerBlissDataCollectorCrawler.class, "Careerbliss", 5000, true));
+            allCrawlers.add(new Crawler("http://www.indeed.com/Best-Places-to-Work",
+                IndeedDataCollectorCrawler.class, "Indeed", 5000, true));
+
+            /*
+            Vault 2
+             */
+            allCrawlers.add(new Crawler("http://www.vault.com/search-results/CompanyResultsPage?iID=4094,4095,4096,4097,4098,117634,4100,4101,4103,117630,4105,4106,117629,132250,4107,117633,4108,4109,4119,57949,4111,4112,4113,4114,4117,4118,4120,117631,4122,4123,4124,117635,4126,4127,4128,117632,4129,4130,4132,4133,117933,4134,4135,4137,4138,4140,4141,4142,4143",
+                Vault2DataCollectorCrawler.class, "VAULT 2", 5000, false));
+
+            /*
+            CAREERBLISS 2
+             */
+            allCrawlers.add(new Crawler("https://www.careerbliss.com/index/?pageType=ReviewsByCompanyName&letter=a",
+                CareerBliss2DataCollectorCrawler.class, "CAREERBLISS 2", 300, false));
+
+            /*
+            Just for testing each company
+             */
+//            allCrawlers.add(new Crawler("http://www.vault.com/company-profiles/tech-consulting/cognizant/employee-reviews?rt=salaries",
+//                VaultDataCollectorCrawler.class, "Vault", 10000));
+//            allCrawlers.add(new Crawler("http://www.vault.com/company-profiles/tech-consulting/cognizant/employee-reviews?rt=interviews",
+//                VaultDataCollectorCrawler.class, "Vault", 10000));
+//            allCrawlers.add(new Crawler("http://www.vault.com/company-profiles/tech-consulting/cognizant/employee-reviews",
+//                VaultDataCollectorCrawler.class, "Vault", 10000));
+
+            for (Crawler baseCrawler : allCrawlers) {
+                List<ReviewData> allReviewDatas = BaseController.getCrawlerData(baseCrawler, filePath);
+
+                //System.out.println("Data total: " + allReviewDatas.size());
+            }
+
         } catch (Exception e) {
             System.out.println("Exception: " + e);
         }
@@ -98,24 +114,24 @@ public class CrawlerController {
         return result;
     }
 
-    public static Set<String> readAllCompanies(Workbook currentWorkBook, Map<String, Integer> sheetNames) {
-        Set<String> result = new HashSet<String>();
-        for (Map.Entry<String, Integer> sheetName : sheetNames.entrySet()) {
-            Sheet sheet = currentWorkBook.getSheet(sheetName.getKey());
-
-            //Get iterator to all the rows in current sheet
-            Iterator<Row> rowIterator = sheet.iterator();
-    System.out.println("Number of rows: " + sheet.getLastRowNum());
-            while(rowIterator.hasNext()) {
-                Row row = rowIterator.next();
-                if (row != null) {
-                    Cell cell = row.getCell(sheetName.getValue());
-                    if (cell != null) {
-                        result.add(cell.getStringCellValue());
-                    }
-                }
-            }
-        }
-        return result;
-    }
+//    public static Set<String> readAllCompanies(Workbook currentWorkBook, Map<String, Integer> sheetNames) {
+//        Set<String> result = new HashSet<String>();
+//        for (Map.Entry<String, Integer> sheetName : sheetNames.entrySet()) {
+//            Sheet sheet = currentWorkBook.getSheet(sheetName.getKey());
+//
+//            //Get iterator to all the rows in current sheet
+//            Iterator<Row> rowIterator = sheet.iterator();
+//    System.out.println("Number of rows: " + sheet.getLastRowNum());
+//            while(rowIterator.hasNext()) {
+//                Row row = rowIterator.next();
+//                if (row != null) {
+//                    Cell cell = row.getCell(sheetName.getValue());
+//                    if (cell != null) {
+//                        result.add(cell.getStringCellValue());
+//                    }
+//                }
+//            }
+//        }
+//        return result;
+//    }
 }

@@ -20,7 +20,7 @@ public class VaultMainPageCrawler extends MyCrawler {
     private String reviewType = "Company";
 
     public VaultMainPageCrawler() {
-        super("http://www.vault.com/search-results/CompanyResultsPage?iID=4118", ImmutableList.of("&pg="));
+        super("http://www.vault.com/search-results/CompanyResultsPage?iID=4118", ImmutableList.of("&pg="), "Vault");
     }
     @Override
     public boolean shouldReadData(String url) {

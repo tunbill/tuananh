@@ -17,16 +17,15 @@ import java.util.Set;
 
 public class VaultDataCollectorCrawler extends MyCrawler {
     private static final Map<String, Float> rateKeyValues =  ImmutableMap.of("one", 1F, "two", 2F, "three", 3F, "four", 4F, "five", 5F);
-    private String reviewType = "Company";
 
     public VaultDataCollectorCrawler() {
         //super("http://www.vault.com/company-profiles/", ImmutableList.of("/employee-reviews?rt="));
-        super("http://www.vault.com/", ImmutableList.of("/internet-social-media/"));
+        super("http://www.vault.com/", ImmutableList.of("/internet-social-media/"), "Vault");
     }
     @Override
     public boolean shouldReadData(String url) {
         url = url.toLowerCase();
-        if (url.startsWith("http://www.vault.com/company-profiles/") && url.contains("/employee-reviews".toLowerCase())) {
+        if (url.startsWith("http://www.vault.com/company-profiles/") && hrefCheckingDrawData(url)) {
             return true;
         }
         return false;
@@ -37,15 +36,26 @@ public class VaultDataCollectorCrawler extends MyCrawler {
     public boolean shouldVisit(Page referringPage, WebURL url) {
         String href = url.getURL().toLowerCase();
         if (!FILTERS.matcher(href).matches() && href.startsWith(prefixPage.toLowerCase()) && hrefChecking(href)) {
-            //System.out.println("Should visit from vault: " + url.getURL());
+            System.out.println("Should visit from vault: " + url.getURL());
             return true;
         }
         return false;
     }
 
     protected boolean hrefChecking(String href) {
-        if (href.contains("search-results/CompanyResultsPage".toLowerCase()) ||
-            href.contains("/company-profiles/")) {
+        if (href.contains("search-results/CompanyResultsPage".toLowerCase())
+            || (href.contains("/company-profiles/") && href.endsWith(".aspx"))
+            || hrefCheckingDrawData(href)) {
+            return true;
+        }
+        return false;
+    }
+
+    protected boolean hrefCheckingDrawData(String href) {
+        if ((href.contains("rt=salaries") && !href.contains("&str="))
+            || (href.contains("rt=interviews") && !href.contains("&str="))
+            || (href.endsWith("/employee-reviews"))
+            || (href.contains("/employee-reviews?pg="))) {
             return true;
         }
         return false;
@@ -56,11 +66,6 @@ public class VaultDataCollectorCrawler extends MyCrawler {
         String url = page.getWebURL().getURL();
         logger.info("Visited: {}", url);
 
-        if (url.contains("salaries")) {
-            reviewType = "Salary";
-        } else if (url.contains("interviews")) {
-            reviewType = "Interview";
-        }
         myCrawlStat.incProcessedPages();
 
         if (page.getParseData() instanceof HtmlParseData) {
@@ -81,6 +86,7 @@ public class VaultDataCollectorCrawler extends MyCrawler {
     public void readData(Document doc) {
         String title = doc.title();
         if (title.endsWith("|Employee Reviews|Vault.com") && !title.startsWith("Submit a Review")) {
+            String reviewType = doc.getElementsByClass("reviewsNav").first().getElementsByAttributeValue("class", "active").first().ownText();
             String comName = title.substring(0, title.indexOf('|'));
             System.out.println(comName + " || " + doc.location());
             Elements reviewElements = doc.getElementsByClass("verticalPadding10");
@@ -93,6 +99,7 @@ public class VaultDataCollectorCrawler extends MyCrawler {
                 List<String> datas = reviewData.getDatas();
                 datas.add("");
                 datas.add(comName);    //Company Name
+                datas.add("");
                 //datas.add("" + (i+1));  //Revew Number
 
                 //Review type
@@ -136,56 +143,48 @@ public class VaultDataCollectorCrawler extends MyCrawler {
     }
 
     public static void main(String[] agrs) throws Exception {
-        Document doc = Jsoup.parse("<div class=\"column column8 verticalPadding10\">\n" +
-            "                    <h2 class=\"large normalWeight\">\n" +
-            "                        Internship</h2>\n" +
-            "                    <!-- <span id=\"ContentPlaceHolderDefault_SectionContent_SecondRowContent_DisplayReviewItemsRepeater_UGCbrTag_1\"><br /></span> -->\n" +
+        Document doc = Jsoup.parse("<div class=\"column column8\">\n" +
+            "                <ul class=\"reviewsNav\">\n" +
+            "                    <li>\n" +
+            "                        <h2 class=\"medium\">Employee Reviews</h2>\n" +
+            "                        <h3 class=\"text\"><a id=\"ContentPlaceHolderDefault_SectionContent_SecondRowContent_SubmitAnonEmployeeRev\" href=\"/company-profiles/employee-reviews/submit-employee-review.aspx\"><i class=\"fa fa-pencil-square-o\"></i> Submit a Review</a></h3>\n" +
+            "                    </li>\n" +
             "\n" +
-            "                    <p class=\"goldStarsLine\">\n" +
-            "                        <span id=\"ContentPlaceHolderDefault_SectionContent_SecondRowContent_DisplayReviewItemsRepeater_SetStarUI_1\" class=\"goldStars four\">\n" +
-            "                            4.0\n" +
-            "                            of 5 stars\n" +
-            "                        </span>\n" +
-            "                    </p>\n" +
-            "                    <p>\n" +
-            "                        <span class=\"text normalWeight\">\n" +
-            "                            \n" +
-            "                                    November 2015\n" +
-            "                                |\n" +
-            "                                    <span class=\"darkGrey bold\">FORMER EMPLOYEE</span>\n" +
-            "                                \n" +
-            "                            <span id=\"ContentPlaceHolderDefault_SectionContent_SecondRowContent_DisplayReviewItemsRepeater_VerEmployeeDiv_1\" style=\"display:none;\"></span>\n" +
-            "                    </span></p>\n" +
-            "                            <h3 id=\"ContentPlaceHolderDefault_SectionContent_SecondRowContent_DisplayReviewItemsRepeater_UGCStringComments_1_PopTitle_0\" class=\"medium\">Uppers</h3>\n" +
-            "                            \n" +
-            "                            \n" +
-            "                            <p class=\"section\">\n" +
-            "                                Smartest people I've ever met<br>Great culture and got to work on things that matter\n" +
-            "                            </p>\n" +
-            "                        \n" +
-            "                            <h3 id=\"ContentPlaceHolderDefault_SectionContent_SecondRowContent_DisplayReviewItemsRepeater_UGCStringComments_1_PopTitle_1\" class=\"medium\">Downers</h3>\n" +
-            "                            \n" +
-            "                            \n" +
-            "                            <p class=\"section\">\n" +
-            "                                Not a lot of interaction with senior executives.<br>Burocracy is a downer\n" +
-            "                            </p>\n" +
-            "                        \n" +
-            "                            <h3 id=\"ContentPlaceHolderDefault_SectionContent_SecondRowContent_DisplayReviewItemsRepeater_UGCStringComments_1_PopTitle_2\" class=\"medium\">Comments</h3>\n" +
-            "                            \n" +
-            "                            \n" +
-            "                            <p class=\"section\">\n" +
-            "                                If you like working with smart people, at one of the most important companies in the world, give it a shot\n" +
-            "                            </p>\n" +
-            "                        \n" +
-            "                </div>");
+            "                    \n" +
+            "                    <li id=\"ContentPlaceHolderDefault_SectionContent_SecondRowContent_CompanySubset_LI\" class=\"active\">\n" +
+            "                        <span>410</span><br>\n" +
+            "                        Company\n" +
+            "                    </li>\n" +
+            "\n" +
+            "                    <li id=\"ContentPlaceHolderDefault_SectionContent_SecondRowContent_InterviewSubset_LILink\">\n" +
+            "                        <a id=\"ContentPlaceHolderDefault_SectionContent_SecondRowContent_InterviewSubsetLink\" href=\"/company-profiles/tech-consulting/cognizant/employee-reviews?rt=interviews\">\n" +
+            "                            <span>177</span><br>\n" +
+            "                            Interviews\n" +
+            "                        </a>\n" +
+            "                    </li>\n" +
+            "                    \n" +
+            "\n" +
+            "                    <li id=\"ContentPlaceHolderDefault_SectionContent_SecondRowContent_SalariesSubset_LILink\">\n" +
+            "                        <a id=\"ContentPlaceHolderDefault_SectionContent_SecondRowContent_SalariesSubsetLink\" href=\"/company-profiles/tech-consulting/cognizant/employee-reviews?rt=salaries\">\n" +
+            "                            <span>322</span><br>\n" +
+            "                            Salaries\n" +
+            "                        </a>\n" +
+            "                    </li>\n" +
+            "                    \n" +
+            "                    \n" +
+            "                </ul>\n" +
+            "            </div>");
 
         //System.out.println(doc.getElementsByClass("cmp-ratings-popup").first());
-        Elements reviewElements = doc.getElementsByClass("verticalPadding10");
-        Element reviewElement = reviewElements.first();
-        Elements goldStarsLine = reviewElement.getElementsByClass("section");
+//        Elements reviewElements = doc.getElementsByClass("verticalPadding10");
+//        Element reviewElement = reviewElements.first();
+//        Elements goldStarsLine = reviewElement.getElementsByClass("section");
+//
+//        for (int i = 0; i < goldStarsLine.size(); i++) {
+//            System.out.println(goldStarsLine.get(i).text());
+//        }
 
-        for (int i = 0; i < goldStarsLine.size(); i++) {
-            System.out.println(goldStarsLine.get(i).text());
-        }
+        String reviewType = doc.getElementsByClass("reviewsNav").first().getElementsByAttributeValue("class", "active").first().ownText();
+        System.out.println(reviewType);
     }
 }

@@ -8,6 +8,7 @@ import java.util.Set;
 public class CrawlData {
     private long totalLinks;
     private int totalProcessedPages;
+    private String filePath;
     private List<ReviewData> reviewDatas = new ArrayList<ReviewData>();
 
     public long getTotalLinks() {
@@ -44,5 +45,13 @@ public class CrawlData {
 
     public void setReviewDatas(List<ReviewData> reviewDatas) {
         this.reviewDatas = reviewDatas;
+    }
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
     }
 }

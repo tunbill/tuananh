@@ -1,7 +1,10 @@
 package com.crawler;
 
 import com.crawler.model.CrawlData;
+import com.crawler.model.Crawler;
 import com.crawler.model.ReviewData;
+import com.crawler.poi.ExcelRead;
+import com.google.common.collect.ImmutableMap;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
@@ -11,7 +14,17 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 public abstract class MyCrawler extends WebCrawler {
@@ -20,12 +33,14 @@ public abstract class MyCrawler extends WebCrawler {
             "|rm|smil|wmv|swf|wma|zip|rar|gz))$");
     protected String prefixPage;
     protected List<String> urlContainString;
+    protected String sheetName;
 
     CrawlData myCrawlStat;
 
-    public MyCrawler(String prefixPage, List<String> urlContainString) {
+    public MyCrawler(String prefixPage, List<String> urlContainString, String sheetName) {
         this.prefixPage = prefixPage;
         this.urlContainString = urlContainString;
+        this.sheetName = sheetName;
         myCrawlStat = new CrawlData();
     }
 
